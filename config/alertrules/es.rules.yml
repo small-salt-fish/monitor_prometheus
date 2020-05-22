@@ -1,0 +1,55 @@
+groups:
+- name: es_state
+  rules:
+  - alert: ES集群状态告警
+    expr: elasticsearch_cluster_health_status{color="yellow"} == 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "ES集群健康状态异常"
+      description: "集群名称{{$labels.cluster}}, 健康状态为yellow."
+  - alert: ES集群状态告警
+    expr: elasticsearch_cluster_health_status{color="red"} == 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "ES集群健康状态异常"
+      description: "集群名称{{$labels.cluster}}, 健康状态为red."
+
+  - alert: ES进程CPU使用率告警
+    expr: elasticsearch_process_cpu_percent > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "ES节点进程CPU使用率异常"
+      description: "ES节点{{$labels.instance}}进程CPU使用率高于80%"
+
+  - alert: ES文件系统使用率告警
+    expr: 100 * (elasticsearch_filesystem_data_size_bytes - elasticsearch_filesystem_data_free_bytes) / elasticsearch_filesystem_data_size_bytes > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "ES节点文件系统使用率异常"
+      description: "ES节点{{$labels.instance}},文件系统使用率高于80%"
+
+  - alert: ES内存使用率告警
+    expr: 100 * (elasticsearch_jvm_memory_used_bytes / elasticsearch_jvm_memory_max_bytes) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "ES节点jvm内存使用率异常"
+      description: "ES节点-{{$labels.instance}},jvm内存使用率高于80%"
+
+  - alert: ES线程池告警
+    expr: irate(elasticsearch_thread_pool_rejected_count[5m]) > 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "ES节点当前线程池异常"
+      description: "ES节点{{$labels.instance}},当前线程池{{$labels.type}}被拒绝{{ $value }}次数"

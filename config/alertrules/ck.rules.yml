@@ -1,0 +1,11 @@
+groups:
+- name: ck_state
+  rules:
+  - alert: clickhouse http 连接告警
+    expr: sum(clickhouse_http_connection) == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "clickhouse连接数为0"
+      description: "{{$labels.instance}} - {{$labels.job}} 连接数为0"

@@ -1,0 +1,27 @@
+groups:
+- name: kafka_state
+  rules:
+  - alert: kafka消费积压告警10w
+    expr: sum(kafka_consumergroup_lag) by (consumergroup, topic,instance)  > 100000
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "kafka消费积压告警"
+      description: "消费者组{{$labels.consumergroup}},TOPIC {{$labels.topic}} 当前消费积压超过10W"
+  - alert: kafka消费积压告警1000w
+    expr: sum(kafka_consumergroup_lag{consumergroup!="console-consumer-1099"}) by (consumergroup, topic,instance)  > 10000000
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "kafka消费积压告警"
+      description: "消费者组{{$labels.consumergroup}},TOPIC {{$labels.topic}} 当前消费积压超过1000W"
+  - alert: kafka偏移量告警
+    expr: sum(delta(kafka_topic_partition_current_offset{topic="dt_all_log"}[5m])/5) by (topic,instance)  < 2000
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "kafka偏移量告警"
+      description: "{{$labels.topic}}当前偏移量小于2K"

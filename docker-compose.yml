@@ -1,0 +1,15 @@
+version: '2'
+services:
+  monitor:
+    image: registry.cn-hangzhou.aliyuncs.com/dtstack-prod/monitor:v3.0
+    container_name: monitor
+    restart: always
+    network_mode: "host"
+    environment:
+      - ES_HOST=172.16.8.95:9200
+      - KAFKA_SERVER=172.16.8.179:9092
+      - CK_URI=172.16.8.89:8123
+      - PROJ_NAME=项目1
+      - TOKEN=26bd98b11352ce57e509489101beb26a3e5d7514b6337de1931b2f370b338fd0
+    volumes:
+      - /data/promtheus/data:/root/monitor/prometheus/data

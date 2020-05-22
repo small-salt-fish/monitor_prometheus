@@ -1,0 +1,56 @@
+groups:
+- name: node_state
+  rules:
+  - alert: 主机CPU使用率告警
+    expr: sum(rate(node_cpu_seconds_total{mode!="idle",mode!="iowait",mode!~"^(?:guest.*)$"}[3m])) BY (instance) > 90
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "主机CPU使用率异常"
+      description: "{{$labels.instance}} CPU使用率超过90%."
+
+  - alert: 主机文件系统告警
+    expr: 100 * (node_filesystem_free_bytes/node_filesystem_size_bytes) < 20
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "主机文件系统使用率异常"
+      description: "{{$labels.instance}} 挂载点 {{$labels.mountpoint}}可用空间少于20%"
+
+  - alert: 主机流入流量告警
+    expr: sum(rate(node_network_receive_bytes_total[3m])) BY (instance) > 1048567000
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "主机网络入流量异常"
+      description: "{{$labels.instance}} 网络入流量高于10M"
+
+  - alert: 主机流出流量告警
+    expr: sum(rate(node_network_transmit_bytes_total[3m])) BY (instance) > 104856700
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "主机网络出流量异常"
+      description: "{{$labels.instance}} 网络出流量高于10M"
+
+  - alert: 主机内存使用率告警
+    expr: 100*(node_memory_MemFree_bytes+node_memory_Cached_bytes+node_memory_Buffers_bytes)/node_memory_MemTotal_bytes < 10
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "主机内存使用率异常"
+      description: "{{$labels.instance}} 内存使用率超过90%"
+
+  - alert: 主机状态告警
+    expr: up{job="node_exporter"} == 0
+    for: 3m
+    labels:
+      severity: critical
+    annotations:
+      summary: "服务器关闭"
+      description: "{{$labels.instance}} 服务器关闭"

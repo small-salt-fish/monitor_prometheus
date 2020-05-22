@@ -1,0 +1,11 @@
+groups:
+- name: service_status
+  rules:
+  - alert: 服务状态告警
+    expr: status==0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "服务状态异常"
+      description: "实例{{$labels.instance}}, {{$labels.job}}服务状态异常"

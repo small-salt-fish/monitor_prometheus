@@ -1,0 +1,20 @@
+groups:
+- name: port_status
+  rules:
+  - alert: 端口状态告警
+    expr: probe_success{job="srv_check"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "端口状态异常"
+      description: "{{$labels.instance}} 端口状态异常"
+
+  - alert: 网络状态告警
+    expr: probe_success{job="node_icmp_check"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "网络不可达"
+      description: "{{$labels.instance}} 网络不可达"

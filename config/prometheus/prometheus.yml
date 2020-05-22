@@ -1,0 +1,133 @@
+# my global config
+global:
+  scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 30s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+#alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets: ["localhost:9093"]
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+   - "alertrules/es.rules.yml"
+   - "alertrules/ck.rules.yml"
+   - "alertrules/kafka.rules.yml"
+   - "alertrules/node.rules.yml"
+   - "alertrules/blackbox.rules.yml"
+   - "alertrules/pushgateway.rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 60s
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          project: test
+  - job_name: srv_check
+    params:
+      module:
+      - tcp_connect
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /probe
+    scheme: http
+    file_sd_configs:
+    - files:
+      - /root/conf.d/hostsPort.json
+      refresh_interval: 5m
+    relabel_configs:
+    - source_labels: [__address__]
+      separator: ;
+      regex: (.*)
+      target_label: __param_target
+      replacement: $1
+      action: replace
+    - source_labels: [__param_target]
+      separator: ;
+      regex: (.*)
+      target_label: instance
+      replacement: $1
+      action: replace
+    - separator: ;
+      regex: (.*)
+      target_label: __address__
+      replacement: 127.0.0.1:9115
+      action: replace
+  - job_name: 'node_icmp_check'
+    scrape_interval: 10s
+    metrics_path: /probe
+    params:
+      module: [icmp]
+    file_sd_configs:
+      - files:
+        - "/root/conf.d/hostsIP.json"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: ping
+      - target_label: __address__
+        replacement: 127.0.0.1:9115
+      - source_labels: [__param_target]
+        separator: ;
+        regex: (.*)
+        target_label: instance
+        replacement: $1
+        action: replace
+  - job_name: pushgateway
+    static_configs:
+      - targets: ['localhost:9091']
+        labels:
+          instance: pushgateway
+          project: test
+  - job_name: "node_exporter"
+    file_sd_configs:
+      - files:
+        - /root/conf.d/node_exporter.json
+  - job_name: "elasticsearch_exporter"
+    static_configs:
+    - targets:
+      - localhost:9108
+      labels:
+        project: test
+    relabel_configs:
+      - source_labels: [__param_target]
+        separator: ;
+        regex: (.*)
+        target_label: instance
+        replacement: "es_cluster"
+        action: replace
+  - job_name: "kafka_exporter"
+    static_configs:
+      - targets:
+        - localhost:9308
+        labels:
+          project: test
+    relabel_configs:
+      - source_labels: [__param_target]
+        separator: ;
+        regex: (.*)
+        target_label: instance
+        replacement: "kafka_cluster"
+        action: replace
+  - job_name: "ck_exporter"
+    static_configs:
+      - targets:
+        - localhost:9116
+        labels:
+          project: test
+    relabel_configs:
+      - source_labels: [__param_target]
+        separator: ;
+        regex: (.*)
+        target_label: instance
+        replacement: "ck_cluster"
+        action: replace
+  - job_name: "jvm"
+    file_sd_configs:
+      - files:
+        - /root/conf.d/jvm.json
+
